@@ -11,16 +11,6 @@
 
 ---
 
-## 📸 Demo
-
-> _Chạy `mvn clean package` và deploy lên Tomcat để xem giao diện._
-
-| Trang Chủ | Trang Admin Dashboard | PC Builder |
-|---|---|---|
-| _(screenshot)_ | _(screenshot)_ | _(screenshot)_ |
-
----
-
 ## ✨ Tính Năng
 
 ### 🛍️ Cổng Người Dùng
