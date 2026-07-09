@@ -1,0 +1,153 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+
+<div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-3">
+  <div class="gearvn-product-card">
+
+    <!-- ===== PRODUCT IMAGE ===== -->
+    <div class="product-image">
+
+      <%-- Xử lý ảnh: link online hoặc local --%>
+      <c:choose>
+        <c:when test="${fn:startsWith(p.anhChinh, 'http://') or fn:startsWith(p.anhChinh, 'https://')}">
+          <%-- Ảnh là link online --%>
+          <img src="${p.anhChinh}"
+               alt="${p.tenSP}"
+               onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/img/no-image.png';">
+        </c:when>
+        <c:when test="${not empty p.anhChinh}">
+          <%-- Ảnh là file local --%>
+          <img src="${pageContext.request.contextPath}${fn:startsWith(p.anhChinh, '/') ? '' : '/'}${p.anhChinh}"
+               alt="${p.tenSP}"
+               onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/img/no-image.png';">
+        </c:when>
+        <c:otherwise>
+          <%-- Không có ảnh - dùng ảnh mặc định --%>
+          <img src="${pageContext.request.contextPath}/img/no-image.png"
+               alt="${p.tenSP}">
+        </c:otherwise>
+      </c:choose>
+
+      <%-- Badge: Vừa mở bán --%>
+      <c:if test="${not empty p.soLuongTon and p.soLuongTon > 10}">
+        <span class="stock-badge new">New </span>
+      </c:if>
+
+      <%-- Badge: Sắp hết hàng --%>
+      <c:if test="${not empty p.soLuongTon and p.soLuongTon > 0 and p.soLuongTon <= 5}">
+        <span class="stock-badge low">Low stock</span>
+      </c:if>
+
+      <%-- Badge: Hết hàng --%>
+      <c:if test="${not empty p.soLuongTon and p.soLuongTon <= 0}">
+        <span class="stock-badge out">sold out</span>
+      </c:if>
+      <%-- Badge: Giảm giá (dựa vào promotion thực tế nếu có) --%>
+      <c:if test="${not empty p.discountedPrice and p.discountedPrice < p.giaBan}">
+        <c:set var="discountPercent" value="${(p.giaBan - p.discountedPrice) / p.giaBan * 100}" />
+        <span class="discount-badge">-<fmt:formatNumber value="${discountPercent}" pattern="#"/>%</span>
+      </c:if>
+
+
+    </div>
+    <!-- ===== END PRODUCT IMAGE ===== -->
+
+    <!-- ===== PRODUCT BODY ===== -->
+    <div class="product-body">
+
+      <%-- Rating (placeholder) --%>
+      <div class="product-rating">
+        <span class="stars">
+          ****<span class="text-muted">*</span>
+        </span>
+        <span class="review-count">(0 review)</span>
+      </div>
+
+      <%-- Tên sản phẩm --%>
+      <a href="${pageContext.request.contextPath}/product?id=${p.maSP}"
+         class="product-name"
+         title="${p.tenSP}">
+        ${p.tenSP}
+      </a>
+
+      <%-- Thương hiệu --%>
+      <div class="product-specs">
+        <c:choose>
+          <c:when test="${not empty p.thuongHieu}">
+            <i class="fas fa-tag me-1"></i>${p.thuongHieu}
+          </c:when>
+          <c:otherwise>
+            <i class="fas fa-tag me-1"></i>Is updating
+          </c:otherwise>
+        </c:choose>
+      </div>
+
+      <%-- Giá sản phẩm --%>
+      <div class="product-price">
+        <c:choose>
+          <c:when test="${not empty p.discountedPrice and p.discountedPrice < p.giaBan}">
+            <%-- Đang giảm giá: hiển thị giá mới + giá cũ --%>
+            <span class="current-price">
+              <fmt:formatNumber value="${p.discountedPrice}"
+                                type="number"
+                                groupingUsed="true"/> VND
+            </span>
+            <span class="old-price">
+              <fmt:formatNumber value="${p.giaBan}"
+                                type="number"
+                                groupingUsed="true"/> VND
+            </span>
+          </c:when>
+          <c:otherwise>
+            <%-- Không giảm giá: chỉ hiển thị giá bán --%>
+            <span class="current-price">
+              <fmt:formatNumber value="${p.giaBan}"
+                                type="number"
+                                groupingUsed="true"/> VND
+            </span>
+          </c:otherwise>
+        </c:choose>
+      </div>
+
+      <%-- Nút thêm vào giỏ + xem chi tiết --%>
+      <div class="product-action">
+
+        <c:choose>
+          <c:when test="${p.soLuongTon > 0}">
+            <%-- Còn hàng: cho phép thêm vào giỏ --%>
+            <form action="${pageContext.request.contextPath}/cart"
+                  method="post"
+                  style="flex:1;">
+              <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
+              <input type="hidden" name="action"   value="add">
+              <input type="hidden" name="maSP"     value="${p.maSP}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn-add-cart">
+                <i class="fas fa-shopping-cart me-1"></i> Add
+              </button>
+            </form>
+          </c:when>
+          <c:otherwise>
+            <%-- Hết hàng: disable nút --%>
+            <button class="btn-add-cart" disabled style="flex:1; opacity:0.5; cursor:not-allowed;">
+              <i class="fas fa-times-circle me-1"></i> Hết hàng
+            </button>
+          </c:otherwise>
+        </c:choose>
+
+        <%-- Nút xem chi tiết --%>
+        <a href="${pageContext.request.contextPath}/product?id=${p.maSP}"
+           class="btn-wishlist"
+           title="Xem chi tiết">
+          <i class="fas fa-eye"></i>
+        </a>
+
+      </div>
+      <%-- END product-action --%>
+
+    </div>
+    <!-- ===== END PRODUCT BODY ===== -->
+
+  </div>
+</div>
